@@ -37,7 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'bookshelf',  # Ensure there's no typo and the comma is properly placed
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
