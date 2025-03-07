@@ -11,6 +11,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login  
 from django.contrib import messages
 from django.contrib.auth.models import Group, Permission
+from django.db.models import Q
+
+
 
 def user_has_role(user, roles):
     if not hasattr(user, 'relationship_userprofile'):
@@ -75,3 +78,51 @@ def book_delete(request, pk):
         book.delete()
         return redirect('book_list')
     return render(request, 'bookshelf/book_confirm_delete.html', {'book': book})
+
+# bookshelf/views.py
+def list_books(request):
+    
+    # Secure search handling
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        # Using Django ORM for parameterized queries
+        books = Book.objects.filter(
+            Q(title__icontains=search_query) | 
+            Q(author__icontains=search_query) |
+            Q(isbn__icontains=search_query)
+        )
+    else:
+        books = Book.objects.all()
+    
+    return render(request, 'bookshelf/book_list.html', {
+        'books': books,
+        'search_query': search_query
+    })
+
+def book_form(request, book_id=None):
+    if book_id:
+        book = get_object_or_404(Book, id=book_id)
+    else:
+        book = None
+    
+    if request.method == 'POST':
+        # Using Django forms for validation and sanitization
+        form = Book(request.POST, instance=book)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Book saved successfully!")
+            return redirect('book_list')
+    else:
+        form = Book(instance=book)
+    
+    return render(request, 'bookshelf/form_example.html', {'form': form})
+
+def delete_book(request, book_id):
+    
+    if request.method == 'POST':
+        book = get_object_or_404(Book, id=book_id)
+        book.delete()
+        messages.success(request, "Book deleted successfully!")
+    
+    return redirect('list_books')

@@ -1,0 +1,12 @@
+<!-- bookshelf/templates/bookshelf/book_list.html -->
+<!-- If you have search or filter forms -->
+<form method="GET" action="{% url 'book_list' %}">
+    <input type="text" name="search" placeholder="Search books...">
+    <button type="submit">Search</button>
+</form>
+
+<!-- If you have any POST forms for actions like delete -->
+<form method="POST" action="{% url 'delete_book' book.id %}">
+    {% csrf_token %}
+    <button type="submit">Delete</button>
+</form>

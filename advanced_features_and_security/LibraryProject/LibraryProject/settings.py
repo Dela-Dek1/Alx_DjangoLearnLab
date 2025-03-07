@@ -30,6 +30,31 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
 # Application definition
 
+# settings.py
+
+# Set DEBUG to False in production
+DEBUG = False
+
+# Configure browser security headers
+SECURE_BROWSER_XSS_FILTER = True  # Enables XSS filtering in most browsers
+X_FRAME_OPTIONS = 'DENY'  # Prevents your site from being framed by other sites
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevents browsers from MIME-sniffing a response
+
+# Secure cookie settings
+CSRF_COOKIE_SECURE = True  # Cookies only sent over HTTPS
+SESSION_COOKIE_SECURE = True  # Cookies only sent over HTTPS
+CSRF_COOKIE_HTTPONLY = True  # Prevents JavaScript from accessing CSRF cookie
+SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript from accessing session cookie
+
+# Additional recommended security settings
+SECURE_SSL_REDIRECT = True  # Redirect all HTTP requests to HTTPS
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # HSTS for subdomains too
+SECURE_HSTS_PRELOAD = True  # Ready for browser preload lists
+
+# Allowed hosts (specify your domains in production)
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -49,7 +74,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
+    'LibraryProject.middleware.CSPMiddleware',
 ]
+
+
+# Configure CSP settings
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")
+CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
+CSP_IMG_SRC = ("'self'", "data:")
+CSP_CONNECT_SRC = ("'self'",)
+
 
 ROOT_URLCONF = 'LibraryProject.urls'
 
