@@ -117,7 +117,7 @@ def book_form(request, book_id=None):
         form = Book(instance=book)
     
     return render(request, 'bookshelf/form_example.html', {'form': form})
-
+    
 def delete_book(request, book_id):
     
     if request.method == 'POST':
