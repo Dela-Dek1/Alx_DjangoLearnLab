@@ -30,8 +30,6 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
 # Application definition
 
-# settings.py
-
 # Set DEBUG to False in production
 DEBUG = False
 
@@ -51,6 +49,28 @@ SECURE_SSL_REDIRECT = True  # Redirect all HTTP requests to HTTPS
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # HSTS for subdomains too
 SECURE_HSTS_PRELOAD = True  # Ready for browser preload lists
+
+# Secure cookie settings
+SESSION_COOKIE_SECURE = True  # Session cookies only sent over HTTPS
+CSRF_COOKIE_SECURE = True  # CSRF cookies only sent over HTTPS
+# Security headers
+X_FRAME_OPTIONS = 'DENY'  # Prevents site from being loaded in an iframe (anti-clickjacking)
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevents browser from guessing content types
+SECURE_BROWSER_XSS_FILTER = True  # Enables browser's XSS protection
+
+# settings.py
+if DEBUG:
+    # Development settings
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    # Production settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Other security settings
+
 
 # Allowed hosts (specify your domains in production)
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
