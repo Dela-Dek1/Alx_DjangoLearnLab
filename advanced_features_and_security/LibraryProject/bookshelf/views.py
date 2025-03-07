@@ -151,25 +151,23 @@ def list_books(request):
     return render(request, 'bookshelf/book_list.html', {'books': books})
 
 @login_required
-@require_http_methods(["GET", "POST"])  # Limit HTTP methods
 def add_book(request):
     """
     Add a new book with form validation to ensure data safety.
     """
     if request.method == 'POST':
         # Use Django form for input validation and sanitization
-        form = BookForm(request.POST)
+        form = Book(request.POST)
         if form.is_valid():
             # Safe data handling through Django's ORM
             form.save()
             return redirect('list_books')
     else:
-        form = BookForm()
+        form = Book()
     
     return render(request, 'bookshelf/form_example.html', {'form': form})
 
 @login_required
-@require_http_methods(["GET", "POST"])  # Limit HTTP methods
 def edit_book(request, book_id):
     """
     Edit an existing book with secure lookup and validation.
@@ -178,17 +176,16 @@ def edit_book(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     
     if request.method == 'POST':
-        form = BookForm(request.POST, instance=book)
+        form = Book(request.POST, instance=book)
         if form.is_valid():
             form.save()
             return redirect('list_books')
     else:
-        form = BookForm(instance=book)
+        form = Book(instance=book)
     
     return render(request, 'bookshelf/form_example.html', {'form': form})
 
 @login_required
-@require_http_methods(["POST"])  # Only allow POST for deletions
 def delete_book(request, book_id):
     """
     Delete a book with proper authentication and request method validation.

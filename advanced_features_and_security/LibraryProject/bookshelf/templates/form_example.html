@@ -1,6 +1,13 @@
 <!-- bookshelf/templates/bookshelf/form_example.html -->
-<form method="POST" action="{% url 'submit_form' %}">
+{% extends "base.html" %}  <!-- If you're using a base template -->
+
+{% block content %}
+<h1>Example Form</h1>
+<p>This is a secure form handling example.</p>
+
+<form method="POST">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Submit</button>
 </form>
+{% endblock %}
