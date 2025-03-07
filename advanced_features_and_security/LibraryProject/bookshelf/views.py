@@ -12,7 +12,7 @@ from django.contrib.auth import login
 from django.contrib import messages
 from django.contrib.auth.models import Group, Permission
 from django.db.models import Q
-
+from .forms import ExampleForm
 
 
 def user_has_role(user, roles):
@@ -126,3 +126,94 @@ def delete_book(request, book_id):
         messages.success(request, "Book deleted successfully!")
     
     return redirect('list_books')
+
+
+
+
+def list_books(request):
+    """
+    Display all books with optional search functionality.
+    Uses Django's ORM to prevent SQL injection.
+    """
+    # Get the query from request GET parameters with a default empty string
+    query = request.GET.get('q', '')
+    
+    # Use Django's ORM for safe querying instead of raw SQL
+    if query:
+        # Use parameterized queries via Django's ORM
+        books = Book.objects.filter(
+            Q(title__icontains=query) | 
+            Q(author__icontains=query)
+        )
+    else:
+        books = Book.objects.all()
+    
+    return render(request, 'bookshelf/book_list.html', {'books': books})
+
+@login_required
+@require_http_methods(["GET", "POST"])  # Limit HTTP methods
+def add_book(request):
+    """
+    Add a new book with form validation to ensure data safety.
+    """
+    if request.method == 'POST':
+        # Use Django form for input validation and sanitization
+        form = BookForm(request.POST)
+        if form.is_valid():
+            # Safe data handling through Django's ORM
+            form.save()
+            return redirect('list_books')
+    else:
+        form = BookForm()
+    
+    return render(request, 'bookshelf/form_example.html', {'form': form})
+
+@login_required
+@require_http_methods(["GET", "POST"])  # Limit HTTP methods
+def edit_book(request, book_id):
+    """
+    Edit an existing book with secure lookup and validation.
+    """
+    # Use get_object_or_404 for safe object retrieval
+    book = get_object_or_404(Book, id=book_id)
+    
+    if request.method == 'POST':
+        form = BookForm(request.POST, instance=book)
+        if form.is_valid():
+            form.save()
+            return redirect('list_books')
+    else:
+        form = BookForm(instance=book)
+    
+    return render(request, 'bookshelf/form_example.html', {'form': form})
+
+@login_required
+@require_http_methods(["POST"])  # Only allow POST for deletions
+def delete_book(request, book_id):
+    """
+    Delete a book with proper authentication and request method validation.
+    """
+    book = get_object_or_404(Book, id=book_id)
+    
+    # Additional permission check example
+    if not request.user.is_staff:
+        return HttpResponseForbidden("You don't have permission to delete books.")
+    
+    book.delete()
+    return redirect('list_books')
+
+# Example view that uses ExampleForm
+def example_form_view(request):
+    """
+    Example view demonstrating the use of ExampleForm with secure practices.
+    """
+    if request.method == 'POST':
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            # Process the form data securely
+            # ...
+            return redirect('list_books')
+    else:
+        form = ExampleForm()
+    
+    return render(request, 'bookshelf/form_example.html', {'form': form})
