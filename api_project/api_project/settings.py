@@ -25,7 +25,17 @@ SECRET_KEY = 'django-insecure-!9)$8h+a=_x0*y#gx@9!0@ws%r_(_!+0b&5j+8)y6&v4k7icul
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1:8000']
+
+# For development, set DEBUG to True
+DEBUG = True
+
+# For development, you can use:
+ALLOWED_HOSTS = ['localhost', '127.0.0.1:8000']
+
+# For production, you would set:
+# DEBUG = False
+# ALLOWED_HOSTS = ['your-domain.com', 'www.your-domain.com']
 
 
 # Application definition
@@ -38,8 +48,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'api',
 ]
+
+# api_project/settings.py
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # Keep session auth for browsable API
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Default to requiring authentication
+    ],
+}
+
+
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
