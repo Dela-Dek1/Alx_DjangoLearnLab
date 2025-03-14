@@ -71,7 +71,8 @@ else:
     CSRF_COOKIE_SECURE = True
     # Other security settings
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')ls
+
 
 # Allowed hosts (specify your domains in production)
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']

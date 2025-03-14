@@ -8,19 +8,54 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login  
 from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+from .models import Book
 
+
+def user_has_role(user, roles):
+    if not hasattr(user, 'relationship_userprofile'):
+        return False
+    return user.relationship_userprofile.role in roles
+
+@login_required
+def article_list(request):
+    articles = Book.objects.all()
+    return render(request, 'articles/article_list.html', {'articles': articles})
+
+@login_required
+def article_detail(request, pk):
+    article = get_object_or_404(Book, pk=pk)
+    return render(request, 'articles/article_detail.html', {'article': article})
+
+@login_required
+def article_create(request):
+    if not user_has_role(request.user, ['Librarian', 'Admin']):
+        return HttpResponseForbidden("You don't have permission to create articles")
+        
+@login_required
+def article_edit(request, pk):
+    if not user_has_role(request.user, ['Librarian', 'Admin']):
+        return HttpResponseForbidden("You don't have permission to edit articles")
+ 
+
+@login_required
+def article_delete(request, pk):
+    if not user_has_role(request.user, ['Admin']):
+        return HttpResponseForbidden("You don't have permission to delete articles")
+        
 def register(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()  # Save the user
-            login(request, user)  # Log the user in
+            user = form.save()  
+            login(request, user)  
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}!')
-            return redirect('list_books')  # Redirect to a desired page after registration
+            return redirect('list_books')  
     else:
         form = UserCreationForm()
-    return render(request, 'relationship_app/register.html', {'form': form})
     return render(request, 'relationship_app/register.html', {'form': form})
 
 def list_books(request):
@@ -29,11 +64,6 @@ def list_books(request):
 
 
 
-class LibraryDetailView(DetailView):
-    model = Library  # Specify the model
-    template_name = 'relationship_app/library_detail.html'  # Specify the template
-    context_object_name = 'library'
-# Role-checking functions
 def is_admin(user):
     return hasattr(user, 'userprofile') and user.userprofile.role == 'Admin'
 
@@ -43,22 +73,19 @@ def is_librarian(user):
 def is_member(user):
     return hasattr(user, 'userprofile') and user.userprofile.role == 'Member'
 
-# Admin view
+
 @user_passes_test(is_admin)
 def admin_view(request):
-    return render(request, "relationship_app/admin_view.html")  # Ensure this path is present
+    return render(request, "relationship_app/admin_view.html")  
 
-# Librarian view
 @user_passes_test(is_librarian)
 def librarian_view(request):
-    return render(request, "relationship_app/librarian_view.html")  # Ensure this path is present
+    return render(request, "relationship_app/librarian_view.html")  
 
-# Member view
 @user_passes_test(is_member)
 def member_view(request):
-    return render(request, "relationship_app/member_view.html")  # Ensure this path is present
+    return render(request, "relationship_app/member_view.html")  
 
-# View to add a book
 @permission_required('relationship_app.can_add_book')
 def add_book(request):
     if request.method == 'POST':
