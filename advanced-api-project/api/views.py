@@ -1,19 +1,34 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions
+from rest_framework import generics, filters
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
 
 # Create your views here.
-# Book views using generic views for CRUD operations
 class BookListView(generics.ListAPIView):
     """
     API view to retrieve a list of all books.
     
     This view allows any user (authenticated or not) to view the list of books.
+    It includes filtering, searching, and ordering capabilities.
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
+    
+    # Enable filtering, searching, and ordering capabilities
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    
+    # Filtering options
+    filterset_fields = ['title', 'publication_year', 'author']
+    
+    # Search options
+    search_fields = ['title', 'author__name']
+    
+    # Ordering options
+    ordering_fields = ['title', 'publication_year', 'author__name']
+    ordering = ['title']  # Default ordering
 
 class BookDetailView(generics.RetrieveAPIView):
     """
@@ -23,7 +38,7 @@ class BookDetailView(generics.RetrieveAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
 
 class BookCreateView(generics.CreateAPIView):
     """
@@ -33,7 +48,7 @@ class BookCreateView(generics.CreateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 class BookUpdateView(generics.UpdateAPIView):
     """
@@ -43,7 +58,7 @@ class BookUpdateView(generics.UpdateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 class BookDeleteView(generics.DestroyAPIView):
     """
@@ -53,7 +68,7 @@ class BookDeleteView(generics.DestroyAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # Author views
 class AuthorListView(generics.ListCreateAPIView):
@@ -61,18 +76,25 @@ class AuthorListView(generics.ListCreateAPIView):
     API view to list all authors and create new authors.
     
     This view allows anyone to view the list of authors but
-    restricts creation to authenticated users.
+    restricts creation to authenticated users. It includes
+    filtering, searching, and ordering capabilities.
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    def get_permissions(self):
-        """
-        Override to apply different permissions for different methods.
-        """
-        if self.request.method == 'GET':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+    # Enable filtering, searching, and ordering capabilities
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    
+    # Filtering options
+    filterset_fields = ['name']
+    
+    # Search options
+    search_fields = ['name', 'books__title']
+    
+    # Ordering options
+    ordering_fields = ['name', 'id']
+    ordering = ['name']  # Default ordering
 
 class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -83,11 +105,4 @@ class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    
-    def get_permissions(self):
-        """
-        Override to apply different permissions for different methods.
-        """
-        if self.request.method == 'GET':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [IsAuthenticatedOrReadOnly]
