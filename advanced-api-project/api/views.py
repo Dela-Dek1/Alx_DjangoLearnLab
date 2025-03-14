@@ -1,12 +1,11 @@
 from django.shortcuts import render
-from rest_framework import generics, permissions, filters
+from rest_framework import generics, filters
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer
-
-
+from django_filters import rest_framework as filters_drf
 
 
 # Create your views here.
@@ -112,6 +111,7 @@ class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
+
 # Book views using generic views for CRUD operations
 class BookListView(generics.ListAPIView):
     """
@@ -122,10 +122,10 @@ class BookListView(generics.ListAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
     
     # Enable filtering, searching, and ordering capabilities
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [filters_drf.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
     # Filtering options
     filterset_fields = ['title', 'publication_year', 'author']
@@ -145,7 +145,7 @@ class BookDetailView(generics.RetrieveAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
 
 class BookCreateView(generics.CreateAPIView):
     """
@@ -155,7 +155,7 @@ class BookCreateView(generics.CreateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 class BookUpdateView(generics.UpdateAPIView):
     """
@@ -165,7 +165,7 @@ class BookUpdateView(generics.UpdateAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 class BookDeleteView(generics.DestroyAPIView):
     """
@@ -175,7 +175,7 @@ class BookDeleteView(generics.DestroyAPIView):
     """
     queryset = Book.objects.all()
     serializer_class = BookSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 # Author views
 class AuthorListView(generics.ListCreateAPIView):
@@ -188,9 +188,10 @@ class AuthorListView(generics.ListCreateAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
     # Enable filtering, searching, and ordering capabilities
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [filters_drf.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
     # Filtering options
     filterset_fields = ['name']
@@ -201,14 +202,6 @@ class AuthorListView(generics.ListCreateAPIView):
     # Ordering options
     ordering_fields = ['name', 'id']
     ordering = ['name']  # Default ordering
-    
-    def get_permissions(self):
-        """
-        Override to apply different permissions for different methods.
-        """
-        if self.request.method == 'GET':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
 
 class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -219,11 +212,4 @@ class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    
-    def get_permissions(self):
-        """
-        Override to apply different permissions for different methods.
-        """
-        if self.request.method == 'GET':
-            return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+    permission_classes = [IsAuthenticatedOrReadOnly]
