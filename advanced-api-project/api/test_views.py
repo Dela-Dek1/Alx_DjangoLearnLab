@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 from .models import Author, Book
 
+
+
 class BookAPITests(APITestCase):
     """Test suite for Book API endpoints."""
     
@@ -59,12 +61,14 @@ class BookAPITests(APITestCase):
             'author': self.author1.id
         }
         response = self.client.post('/api/books/create/', new_book, format='json')
-        # Django REST Framework returns 403 Forbidden when no credentials are provided
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
     def test_create_book_authenticated(self):
         """Test creating a book with authentication."""
-        self.client.force_authenticate(user=self.user)
+        # Use client.login() instead of force_authenticate
+        login_successful = self.client.login(username='testuser', password='testpassword123')
+        self.assertTrue(login_successful)
+        
         new_book = {
             'title': 'New Book',
             'publication_year': 2023,
@@ -76,15 +80,17 @@ class BookAPITests(APITestCase):
     
     def test_update_book_authenticated(self):
         """Test updating a book with authentication."""
-        self.client.force_authenticate(user=self.user)
+        # Use client.login() instead of force_authenticate
+        login_successful = self.client.login(username='testuser', password='testpassword123')
+        self.assertTrue(login_successful)
+        
         updated_data = {
             'title': 'Updated Book One',
             'publication_year': 2020,
             'author': self.author1.id
         }
-        # Fix the URL to match the correct URL pattern
         response = self.client.put(
-            f'/api/books/update/{self.book1.id}/', 
+            f'/api/books/{self.book1.id}/update/', 
             updated_data, 
             format='json'
         )
@@ -93,15 +99,20 @@ class BookAPITests(APITestCase):
     
     def test_delete_book_authenticated(self):
         """Test deleting a book with authentication."""
-        self.client.force_authenticate(user=self.user)
-        # Fix the URL to match the correct URL pattern
-        response = self.client.delete(f'/api/books/delete/{self.book1.id}/')
+        # Use client.login() instead of force_authenticate
+        login_successful = self.client.login(username='testuser', password='testpassword123')
+        self.assertTrue(login_successful)
+        
+        response = self.client.delete(f'/api/books/{self.book1.id}/delete/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Book.objects.filter(id=self.book1.id).exists())
     
     def test_validation_future_year(self):
         """Test validation error when publication year is in the future."""
-        self.client.force_authenticate(user=self.user)
+        # Use client.login() instead of force_authenticate
+        login_successful = self.client.login(username='testuser', password='testpassword123')
+        self.assertTrue(login_successful)
+        
         future_year = timezone.now().year + 1
         new_book = {
             'title': 'Future Book',
@@ -177,7 +188,10 @@ class AuthorAPITests(APITestCase):
     
     def test_create_author_authenticated(self):
         """Test creating an author with authentication."""
-        self.client.force_authenticate(user=self.user)
+        # Use client.login() instead of force_authenticate
+        login_successful = self.client.login(username='testuser', password='testpassword123')
+        self.assertTrue(login_successful)
+        
         new_author = {'name': 'New Author'}
         response = self.client.post('/api/authors/', new_author, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -187,8 +201,7 @@ class AuthorAPITests(APITestCase):
         """Test creating an author without authentication (should fail)."""
         new_author = {'name': 'New Author'}
         response = self.client.post('/api/authors/', new_author, format='json')
-        # Django REST Framework returns 403 Forbidden when no credentials are provided
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
     
     def test_searching_authors(self):
         """Test searching for authors by name."""
