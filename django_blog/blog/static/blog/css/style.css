@@ -1,133 +1,122 @@
-/* Basic Reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+/* Main Authentication Styles */
 body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f4f4f4;
-}
-
-.container {
-    width: 80%;
-    margin: auto;
-    overflow: hidden;
-}
-
-/* Header */
-header {
-    background: #35424a;
-    color: white;
-    padding: 20px 0;
-    margin-bottom: 30px;
-}
-
-header a {
-    color: white;
-    text-decoration: none;
-}
-
-header ul {
-    list-style: none;
-    display: flex;
-}
-
-header li {
-    margin-right: 20px;
-}
-
-header nav {
-    float: right;
-    margin-top: 10px;
-}
-
-/* Main Content */
-main {
-    min-height: 70vh;
-}
-
-/* Post Styles */
-.post {
-    background: white;
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .content-section {
+    background: #ffffff;
     padding: 20px;
+    border: 1px solid #dddddd;
+    border-radius: 3px;
     margin-bottom: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.post h2 {
-    margin-bottom: 10px;
-}
-
-.post-meta {
-    font-size: 0.8em;
-    color: #777;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .form-group {
     margin-bottom: 15px;
-}
-
-/* Forms */
-form {
-    background: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.form-group {
+  }
+  
+  .border-bottom {
+    border-bottom: 1px solid #e3e3e3;
+    padding-bottom: 10px;
     margin-bottom: 15px;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-input, textarea {
+  }
+  
+  .border-top {
+    border-top: 1px solid #e3e3e3;
+    padding-top: 10px;
+    margin-top: 15px;
+  }
+  
+  /* Form Styling */
+  legend {
+    font-weight: bold;
+    color: #343a40;
+  }
+  
+  label {
+    font-weight: 500;
+    color: #495057;
+  }
+  
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
     width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
+    padding: 10px;
+    border: 1px solid #ced4da;
     border-radius: 4px;
-}
-
-button {
-    background: #35424a;
-    color: white;
-    padding: 10px 15px;
-    border: none;
+    box-sizing: border-box;
+    margin-bottom: 5px;
+  }
+  
+  .helptext {
+    color: #6c757d;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 10px;
+  }
+  
+  ul.errorlist {
+    color: #dc3545;
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+  
+  /* Button Styling */
+  .btn-outline-info {
+    color: #17a2b8;
+    background-color: transparent;
+    border-color: #17a2b8;
+    padding: 8px 15px;
     border-radius: 4px;
     cursor: pointer;
-}
-
-/* Messages */
-.messages {
-    margin-bottom: 20px;
-}
-
-.message {
-    padding: 10px;
-    margin-bottom: 10px;
+    transition: all 0.3s;
+  }
+  
+  .btn-outline-info:hover {
+    color: #fff;
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+  }
+  
+  /* Alert Messages */
+  .alert {
+    padding: 12px 20px;
     border-radius: 4px;
-}
-
-.success {
+    margin-bottom: 15px;
+  }
+  
+  .alert-success {
     background-color: #d4edda;
+    border-color: #c3e6cb;
     color: #155724;
-}
-
-.error {
+  }
+  
+  .alert-error {
     background-color: #f8d7da;
+    border-color: #f5c6cb;
     color: #721c24;
-}
-
-/* Footer */
-footer {
-    background: #35424a;
-    color: white;
-    text-align: center;
-    padding: 20px 0;
-    margin-top: 30px;
-}
+  }
+  
+  /* Authentication Links */
+  .text-muted a {
+    color: #17a2b8;
+    text-decoration: none;
+  }
+  
+  .text-muted a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Profile Section */
+  .account-heading {
+    font-size: 2rem;
+    margin-bottom: 5px;
+  }
+  
+  .text-secondary {
+    color: #6c757d;
+    margin-bottom: 20px;
+  }
