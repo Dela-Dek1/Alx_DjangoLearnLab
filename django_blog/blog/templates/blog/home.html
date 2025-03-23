@@ -26,7 +26,7 @@
 
 
 {% extends "blog/base.html" %}
-{% block content %}
+
     <h1 class="mb-3">Blog Posts</h1>
     {% if user.is_authenticated %}
         <div class="mb-4">
@@ -93,5 +93,9 @@
                 {% endif %}
             </ul>
         </nav>
-    {% endif %}
-{% endblock content %}
+    
+    {% if user.is_authenticated %}
+    <p>Welcome, {{ user.username }}!</p>
+{% endif %}
+{% endblock %}
+    

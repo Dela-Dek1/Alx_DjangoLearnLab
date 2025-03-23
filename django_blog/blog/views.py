@@ -7,17 +7,12 @@ from .forms import UserRegisterForm, UserUpdateForm, PostForm
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import (
-    ListView,
-    DetailView,
-    CreateView,
-    UpdateView,
-    DeleteView
-)
 from django import forms
 from .models import Comment
 from .forms import CommentForm
 from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+
 
 # Create your views here.
 class CommentCreateView(LoginRequiredMixin, CreateView):
@@ -53,7 +48,44 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def get_success_url(self):
         return reverse_lazy('post-detail', kwargs={'pk': self.object.post.pk})
+    
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    model = Comment
+    fields = ['content']
+    template_name = 'blog/comment_form.html'  # Create this template
 
+    def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['pk'])
+        form.instance.post = post
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('post-detail', kwargs={'pk': self.kwargs['pk']})    
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    fields = ['content']
+    template_name = 'blog/comment_form.html'  # Reuse the same form
+
+    def get_success_url(self):
+        return reverse_lazy('post-detail', kwargs={'pk': self.object.post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'  # Create this template
+
+    def get_success_url(self):
+        return reverse_lazy('post-detail', kwargs={'pk': self.object.post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
 
 
 
@@ -96,7 +128,7 @@ def profile(request):
 
 def home(request):
     context = {
-        'posts': Post.objects.all().order_by('-date_posted')
+        'posts': Post.objects.all().order_by('-published_date')
     }
     return render(request, 'blog/home.html', context)
 
@@ -104,7 +136,7 @@ class PostListView(ListView):
     model = Post
     template_name = 'blog/home.html'
     context_object_name = 'posts'
-    ordering = ['-date_posted']
+    ordering = ['-published_date']
     paginate_by = 5
 
 class PostDetailView(DetailView):
