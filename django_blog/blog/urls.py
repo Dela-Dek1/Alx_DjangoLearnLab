@@ -15,6 +15,8 @@ urlpatterns = [
     # Homepage
     path('', views.home, name='home'),
     path('', views.home, name='blog-home'),
+    path('search/', views.search_posts, name='search-posts'),
+    path('tag/<str:tag_name>/', views.tag_posts, name='tag-posts'),
 
     # User Authentication
     path('login/', views.login, name='login'),
@@ -38,4 +40,9 @@ urlpatterns = [
     # Comments (FBV)  
     path('comment/<int:pk>/edit/', views.comment_edit, name='comment-edit'),
     path('comment/<int:pk>/delete/', views.comment_delete, name='comment-delete'),
+
+    # Update URL patterns
+    path('search/', views.search_posts, name='search-posts'),
+    path('tag/<str:tag_name>/', views.tag_posts, name='tag-posts'),
 ]
+

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Post
+from .models import Post, Tag
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -12,7 +12,7 @@ from .models import Comment
 from .forms import CommentForm
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-
+from django.db.models import Q
 
 # Create your views here.
 class CommentCreateView(LoginRequiredMixin, CreateView):
@@ -87,6 +87,30 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         comment = self.get_object()
         return self.request.user == comment.author
 
+# Make sure this is added to your existing views.py file
+def search_posts(request):
+    query = request.GET.get('q', '')
+    results = Post.objects.none()  # Empty queryset as default
+    
+    if query:
+        # Search in both title and content
+        results = Post.objects.filter(
+            Q(title__icontains=query) | 
+            Q(content__icontains=query)
+        ).distinct()
+    
+    context = {
+        'query': query,
+        'results': results,
+        'result_count': results.count()
+    }
+    return render(request, 'blog/search_results.html', context)
+
+def tag_posts(request, tag_name):
+    """Display posts that contain the given tag."""
+    tag = get_object_or_404(Tag, name=tag_name.lower())  
+    posts = tag.post_set.all()  # Assuming a ManyToMany relationship between Post and Tag
+    return render(request, 'blog/tag_posts.html', {'tag': tag, 'posts': posts})
 
 
 
