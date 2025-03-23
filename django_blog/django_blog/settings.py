@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import pymysql
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -73,6 +76,17 @@ WSGI_APPLICATION = 'django_blog.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('django_blog_db'),
+        'USER': os.environ.get('root'),
+        'PASSWORD': os.environ.get('Dela1234'),
+        'HOST': os.environ.get('localhost'),
+        'PORT': os.environ.get('3306'),
+    }
+}
 
 DATABASES = {
     'default': {
