@@ -1,0 +1,67 @@
+{% extends "blog/base.html" %}
+{% block content %}
+    <article class="media content-section">
+        <div class="media-body">
+            <div class="article-metadata">
+                <a class="mr-2" href="#">{{ post.author }}</a>
+                <small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>
+                {% if post.author == user %}
+                    <div>
+                        <a class="btn btn-sm btn-info mt-1 mb-1" href="{% url 'post-update' post.id %}">Update</a>
+                        <a class="btn btn-sm btn-danger mt-1 mb-1" href="{% url 'post-delete' post.id %}">Delete</a>
+                    </div>
+                {% endif %}
+            </div>
+            <h2 class="article-title">{{ post.title }}</h2>
+            <p class="article-content">{{ post.content }}</p>
+        </div>
+    </article>
+    
+    <!-- Comment Section -->
+    <div class="content-section mt-4">
+        <h4>Comments ({{ comments.count }})</h4>
+        <div class="border-bottom mb-4"></div>
+        
+        {% if user.is_authenticated %}
+            <div class="mb-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-2">Add a Comment</legend>
+                        {{ comment_form.as_p }}
+                    </fieldset>
+                    <div class="form-group">
+                        <button class="btn btn-outline-info" type="submit">Submit</button>
+                    </div>
+                </form>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <a href="{% url 'login' %}">Log in</a> to leave a comment.
+            </div>
+        {% endif %}
+        
+        <!-- Comments List -->
+        {% if comments %}
+            {% for comment in comments %}
+                <div class="comment-section p-3 mb-3 bg-light rounded">
+                    <div class="comment-metadata">
+                        <strong>{{ comment.author }}</strong>
+                        <small class="text-muted ml-2">{{ comment.created_at|date:"F d, Y, g:i a" }}</small>
+                        {% if comment.author == user %}
+                            <div class="float-right">
+                                <a class="btn btn-sm btn-info" href="{% url 'comment-edit' comment.id %}">Edit</a>
+                                <a class="btn btn-sm btn-danger" href="{% url 'comment-delete' comment.id %}">Delete</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <p class="mt-2">{{ comment.content }}</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-secondary">
+                No comments yet. Be the first to comment!
+            </div>
+        {% endif %}
+    </div>
+{% endblock content %}
