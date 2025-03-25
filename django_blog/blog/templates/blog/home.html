@@ -3,48 +3,40 @@
 {% block title %}Home - Django Blog{% endblock %}
 
 {% block content %}
-    <h2>Latest Posts</h2>
+    <h1 class="mb-3">Latest Posts</h1>
     
-    {% if posts %}
-        {% for post in posts %}
-            <article class="post">
-                <h2><a href="{% url 'post_detail' post.id %}">{{ post.title }}</a></h2>
-                <div class="post-meta">
-                    <span>By {{ post.author.username }} on {{ post.published_date|date:"F d, Y" }}</span>
-                </div>
-                <div class="post-content">
-                    <p>{{ post.content|truncatewords:50 }}</p>
-                </div>
-                <a href="{% url 'post_detail' post.id %}">Read More</a>
-            </article>
-        {% endfor %}
-    {% else %}
-        <p>No posts available.</p>
-    {% endif %}
-{% endblock %}
-
-
-
-{% extends "blog/base.html" %}
-
-    <h1 class="mb-3">Blog Posts</h1>
     {% if user.is_authenticated %}
         <div class="mb-4">
             <a class="btn btn-outline-info" href="{% url 'post-create' %}">New Post</a>
         </div>
     {% endif %}
-    {% for post in posts %}
-        <article class="media content-section">
-            <div class="media-body">
-                <div class="article-metadata">
-                    <a class="mr-2" href="#">{{ post.author }}</a>
-                    <small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>
+    
+    {% if posts %}
+        {% for post in posts %}
+            <article class="media content-section">
+                <div class="media-body">
+                    <div class="article-metadata">
+                        <a class="mr-2" href="#">{{ post.author }}</a>
+                        <small class="text-muted">{{ post.created_at|date:"F d, Y" }}</small>
+                    </div>
+                    <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
+                    <p class="article-content">{{ post.content|truncatewords:50 }}</p>
+                    
+                    {% if post.post_tags.all %}
+                        <div class="post-tags mt-2">
+                            <span>Tags:</span>
+                            {% for tag in post.post_tags.all %}
+                                <a href="{% url 'tag-posts' tag.name %}" class="badge badge-info">{{ tag.name }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
-                <h2><a class="article-title" href="{% url 'post-detail' post.id %}">{{ post.title }}</a></h2>
-                <p class="article-content">{{ post.content|truncatewords:50 }}</p>
-            </div>
-        </article>
-    {% endfor %}
+            </article>
+        {% endfor %}
+    {% else %}
+        <p>No posts available.</p>
+    {% endif %}
+    
     {% if is_paginated %}
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
@@ -93,9 +85,10 @@
                 {% endif %}
             </ul>
         </nav>
+    {% endif %}
     
     {% if user.is_authenticated %}
-    <p>Welcome, {{ user.username }}!</p>
-{% endif %}
+        <p>Welcome, {{ user.username }}!</p>
+    {% endif %}
 {% endblock %}
     

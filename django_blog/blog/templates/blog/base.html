@@ -4,11 +4,39 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Django Blog</title>
+    <title>{% block title %}Django Blog{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" type="text/css" href="{% static 'blog/auth_styles.css' %}">
+    <style>
+        .content-section {
+            background: white;
+            padding: 10px 20px;
+            border: 1px solid #dddddd;
+            border-radius: 3px;
+            margin-bottom: 20px;
+        }
+        .article-title {
+            color: #444444;
+        }
+        .article-content {
+            white-space: pre-line;
+        }
+        /* Tag styling */
+        .post-tags {
+            margin-top: 10px;
+        }
+        .badge-info {
+            background-color: #17a2b8;
+            margin-right: 5px;
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+        .comment-section {
+            border: 1px solid #e0e0e0;
+        }
+    </style>
 </head>
 <body>
     <header class="site-header">
@@ -21,6 +49,8 @@
                 <div class="collapse navbar-collapse" id="navbarToggle">
                     <div class="navbar-nav mr-auto">
                         <a class="nav-item nav-link" href="{% url 'blog-home' %}">Home</a>
+                        <!-- Add a link to browse by tags -->
+                        <a class="nav-item nav-link" href="{% url 'blog-tags' %}">Tags</a>
                     </div>
                     <!-- Navbar Right Side -->
                     <div class="navbar-nav">
@@ -51,14 +81,22 @@
             <div class="col-md-4">
                 <div class="content-section">
                     <h3>Blog Sidebar</h3>
-                    <p class='text-muted'>You can put any information here you'd like.
-                        <ul class="list-group">
-                            <li class="list-group-item list-group-item-light">Latest Posts</li>
-                            <li class="list-group-item list-group-item-light">Announcements</li>
-                            <li class="list-group-item list-group-item-light">Calendars</li>
-                            <li class="list-group-item list-group-item-light">etc</li>
-                        </ul>
-                    </p>
+                    <p class='text-muted'>You can put any information here you'd like.</p>
+                    <ul class="list-group">
+                        <li class="list-group-item list-group-item-light">Latest Posts</li>
+                        <li class="list-group-item list-group-item-light">Announcements</li>
+                        <!-- Add a popular tags section to the sidebar -->
+                        <li class="list-group-item list-group-item-light">
+                            <h5>Popular Tags</h5>
+                            {% if popular_tags %}
+                                {% for tag in popular_tags %}
+                                    <a href="{% url 'tag-posts' tag.name %}" class="badge badge-info">{{ tag.name }}</a>
+                                {% endfor %}
+                            {% else %}
+                                <small class="text-muted">No tags yet</small>
+                            {% endif %}
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -70,44 +108,3 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
 </html>
-
-
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Django Blog</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" type="text/css" href="{% static 'blog/auth_styles.css' %}">
-    <style>
-        .content-section {
-            background: white;
-            padding: 10px 20px;
-            border: 1px solid #dddddd;
-            border-radius: 3px;
-            margin-bottom: 20px;
-        }
-        .article-title {
-            color: #444444;
-        }
-        .article-content {
-            white-space: pre-line;
-        }
-        .badge-info {
-            background-color: #17a2b8;
-            margin-right: 5px;
-        }
-        .comment-section {
-            border: 1px solid #e0e0e0;
-        }
-    </style>
-</head>
-<body>
-    <header class="site-header">
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-            <div class="container">
-                <a class="navbar-brand mr-4" href="{% url 'blog-home' %}">Django
