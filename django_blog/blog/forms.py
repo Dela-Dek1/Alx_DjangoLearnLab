@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import Post, Comment
-# Remove the Tag import since we'll use taggit instead
+from taggit.forms import TagWidget
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField()
@@ -20,22 +20,14 @@ class UserUpdateForm(forms.ModelForm):
         fields = ['username', 'email']
 
 
-# Remove the duplicate PostForm class and keep only one version
-
 class PostForm(forms.ModelForm):
-    """
-    Form for creating and updating blog posts with tag support.
-    Uses django-taggit for tag functionality.
-    """
-    # No need for a custom tags field - taggit handles this
-    
     class Meta:
         model = Post
         fields = ['title', 'content', 'post_tags']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 8}),
-            'post_tags': forms.TextInput(attrs={
+            'post_tags': TagWidget(attrs={
                 'class': 'form-control', 
                 'placeholder': 'Enter tags separated by commas'
             }),
@@ -46,8 +38,6 @@ class PostForm(forms.ModelForm):
         help_texts = {
             'post_tags': 'Enter tags separated by commas',
         }
-    
-    # No need for clean_tags or custom save method - taggit handles this automatically
 
 
 class CommentForm(forms.ModelForm):
@@ -61,8 +51,3 @@ class CommentForm(forms.ModelForm):
                 'placeholder': 'Write your comment here...'
             }),
         }
-
-
-
-        
-
