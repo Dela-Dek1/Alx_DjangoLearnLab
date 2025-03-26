@@ -53,7 +53,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 # Tag-related Views - New Class-Based Implementation
 class TagPostsView(ListView):
-    """Class-based view for displaying posts filtered by tag"""
+    
     model = Post
     template_name = 'blog/tag_posts.html'
     context_object_name = 'posts'
@@ -97,7 +97,7 @@ def search_posts(request):
         results = Post.objects.filter(
             Q(title__icontains=query) | 
             Q(content__icontains=query) |
-            Q(post_tags__name__icontains=query)  # Search in tags
+            Q(post_tags__name__icontains=query)  
         ).distinct()
     
     context = {
@@ -108,7 +108,7 @@ def search_posts(request):
     return render(request, 'blog/search_results.html', context)
 
 
-# User Authentication Views
+
 def register(request):
     if request.method == 'POST':
         form = UserRegisterForm(request.POST)
@@ -139,17 +139,26 @@ def profile(request):
     
     return render(request, 'blog/profile.html', context)
 
+class PostByTagListView(ListView):
+    model = Post
+    template_name = 'blog/post_list.html'  
+    context_object_name = 'posts'
+    paginate_by = 10
 
-# Remove duplicate home function - use PostListView instead
+    def get_queryset(self):
+        tag = get_object_or_404(Tag, slug=self.kwargs.get('tag_slug'))
+        return Post.objects.filter(tags__in=[tag])
+
+
 
 class PostListView(ListView):
     model = Post
     template_name = 'blog/home.html'
     context_object_name = 'posts'
-    ordering = ['-created_at']  # Updated from published_date to created_at
+    ordering = ['-created_at'] 
     paginate_by = 5
     
-    # Added popular tags to context
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['popular_tags'] = Tag.objects.annotate(
@@ -160,17 +169,16 @@ class PostListView(ListView):
 class PostDetailView(DetailView):
     model = Post
     
-    # Enhanced to include related posts by tag
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         post = self.get_object()
         
-        # Get related posts by tag
+        
         post_tags_ids = post.post_tags.values_list('id', flat=True)
         similar_posts = Post.objects.filter(post_tags__in=post_tags_ids).exclude(id=post.id).distinct()
         context['similar_posts'] = similar_posts.order_by('-created_at')[:4]
         
-        # Add comments
+        
         context['comments'] = post.comments.all().order_by('-created_at')
         context['comment_form'] = CommentForm()
         
