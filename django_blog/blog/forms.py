@@ -19,18 +19,15 @@ class UserUpdateForm(forms.ModelForm):
         model = User
         fields = ['username', 'email']
 
-
 class PostForm(forms.ModelForm):
+    tags = forms.CharField(widget=TagWidget())  # Explicitly define tags with TagWidget
+
     class Meta:
         model = Post
-        fields = ['title', 'content', 'tags']
+        fields = ['title', 'content', 'tags']  # Ensure 'tags' is included
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 8}),
-            'tags': TagWidget(attrs={
-                'class': 'form-control', 
-                'placeholder': 'Enter tags separated by commas'
-            }),
         }
         labels = {
             'tags': 'Tags',

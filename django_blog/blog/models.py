@@ -9,7 +9,7 @@ class Post(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(default=timezone.now)  # Renamed from published_date
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
-    post_tags = TaggableManager(verbose_name="Tags")
+    tags = TaggableManager(verbose_name="Tags")
     
     def __str__(self):
         return self.title
