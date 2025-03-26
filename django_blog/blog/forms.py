@@ -23,20 +23,20 @@ class UserUpdateForm(forms.ModelForm):
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
-        fields = ['title', 'content', 'post_tags']
+        fields = ['title', 'content', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 8}),
-            'post_tags': TagWidget(attrs={
+            'tags': TagWidget(attrs={
                 'class': 'form-control', 
                 'placeholder': 'Enter tags separated by commas'
             }),
         }
         labels = {
-            'post_tags': 'Tags',
+            'tags': 'Tags',
         }
         help_texts = {
-            'post_tags': 'Enter tags separated by commas',
+            'tags': 'Enter tags separated by commas',
         }
 
 
