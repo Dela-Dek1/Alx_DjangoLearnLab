@@ -6,12 +6,15 @@ from rest_framework.authtoken.models import Token
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()  # Explicitly defining it here
+    
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'bio', 'profile_picture']
         read_only_fields = ['id']
 
 class UserRegisterSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True)  # Explicitly defining here
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True, required=True)
     
