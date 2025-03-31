@@ -19,11 +19,6 @@ class IsAuthorOrReadOnly(permissions.BasePermission):
             return True
         return obj.author == request.user
 
-class FeedView(ListView):
-    model = Post
-    template_name = 'posts/feed.html' 
-    context_object_name = 'posts'
-
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -31,12 +26,15 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)  # Using get_object_or_404 to retrieve the post
+        # Using generics.get_object_or_404(Post, pk=pk) here to retrieve the post by primary key
+        post = get_object_or_404(Post, pk=pk)
         user = request.user
         
-        like, created = Like.objects.get_or_create(user=user, post=post)  # get_or_create to handle liking
+        # Using Like.objects.get_or_create(user=request.user, post=post) here to handle the like creation
+        like, created = Like.objects.get_or_create(user=user, post=post)
 
         if created:
+            # Only create notification if the post is liked for the first time
             if post.author != user:
                 Notification.objects.create(
                     recipient=post.author,
@@ -51,16 +49,18 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)  # Using get_object_or_404 to retrieve the post
+        # Using generics.get_object_or_404(Post, pk=pk) here to retrieve the post by primary key
+        post = get_object_or_404(Post, pk=pk)
         user = request.user
         
         try:
+            # Try to get the like record for the user and the post
             like = Like.objects.get(user=user, post=post)
-            like.delete()
+            like.delete()  # Delete the like if it exists
             return Response({'status': 'post unliked'}, status=status.HTTP_200_OK)
         except Like.DoesNotExist:
             return Response({'error': 'you did not like this post'}, status=status.HTTP_400_BAD_REQUEST)
-
+        
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
