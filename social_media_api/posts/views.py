@@ -6,13 +6,12 @@ from .serializers import PostSerializer, CommentSerializer
 from django.contrib.contenttypes.models import ContentType
 from notifications.models import Notification
 from django.views.generic import ListView
-from .models import Post
 from django.http import JsonResponse
+from rest_framework.generics import get_object_or_404
 
 # Create your views here.
 def home(request):
     return JsonResponse({"message": "Welcome to the Social Media API!"})
-
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
@@ -25,16 +24,6 @@ class FeedView(ListView):
     template_name = 'posts/feed.html' 
     context_object_name = 'posts'
 
-class FeedView(generics.ListAPIView):
-    serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        following_users = user.following.all()  
-        return Post.objects.filter(author__in=following_users).order_by('-created_at')
-
-
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
@@ -42,14 +31,12 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        post = self.get_object()
+        post = get_object_or_404(Post, pk=pk)
         user = request.user
         
-        # Check if user already liked this post
         like, created = Like.objects.get_or_create(user=user, post=post)
         
         if created:
-            # Create notification for the post author
             if post.author != user:
                 Notification.objects.create(
                     recipient=post.author,
@@ -63,7 +50,7 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
-        post = self.get_object()
+        post = get_object_or_404(Post, pk=pk)
         user = request.user
         
         try:
@@ -72,7 +59,6 @@ class PostViewSet(viewsets.ModelViewSet):
             return Response({'status': 'post unliked'}, status=status.HTTP_200_OK)
         except Like.DoesNotExist:
             return Response({'error': 'you did not like this post'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
