@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from .models import CustomUser
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import permissions
 
 
 
@@ -47,7 +48,8 @@ class LoginView(APIView):
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
+
     
     def get_object(self):
         return self.request.user
@@ -68,7 +70,7 @@ class FollowUserView(generics.GenericAPIView):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class UnfollowUserView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = CustomUser.objects.all()
     
     def post(self, request, user_id):
