@@ -31,11 +31,11 @@ class PostViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
+        post = get_object_or_404(Post, pk=pk)  # Using get_object_or_404 to retrieve the post
         user = request.user
         
-        like, created = Like.objects.get_or_create(user=user, post=post)
-        
+        like, created = Like.objects.get_or_create(user=user, post=post)  # get_or_create to handle liking
+
         if created:
             if post.author != user:
                 Notification.objects.create(
@@ -46,11 +46,12 @@ class PostViewSet(viewsets.ModelViewSet):
                     object_id=post.id
                 )
             return Response({'status': 'post liked'}, status=status.HTTP_201_CREATED)
+        
         return Response({'status': 'post already liked'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
-        post = get_object_or_404(Post, pk=pk)
+        post = get_object_or_404(Post, pk=pk)  # Using get_object_or_404 to retrieve the post
         user = request.user
         
         try:
