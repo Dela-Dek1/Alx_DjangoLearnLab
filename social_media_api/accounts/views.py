@@ -8,7 +8,6 @@ from .serializers import UserSerializer, UserRegisterSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 
-
 User = get_user_model()
 
 class RegisterView(generics.CreateAPIView):
@@ -49,9 +48,9 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
-
-class FollowUserView(APIView):
+class FollowUserView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
     
     def post(self, request, user_id):
         try:
@@ -64,8 +63,9 @@ class FollowUserView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
-class UnfollowUserView(APIView):
+class UnfollowUserView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
     
     def post(self, request, user_id):
         try:

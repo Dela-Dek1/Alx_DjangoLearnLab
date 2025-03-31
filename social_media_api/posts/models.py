@@ -27,7 +27,6 @@ class Comment(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-# Add the Like model
 class Like(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='likes')
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likes')
@@ -39,4 +38,3 @@ class Like(models.Model):
     
     def __str__(self):
         return f"{self.user.username} likes {self.post.title}"
-
