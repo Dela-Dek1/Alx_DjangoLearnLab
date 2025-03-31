@@ -7,6 +7,8 @@ from django.contrib.auth import authenticate
 from .serializers import UserSerializer, UserRegisterSerializer
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
+from .models import CustomUser
+
 
 User = get_user_model()
 
@@ -50,7 +52,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
 class FollowUserView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     
     def post(self, request, user_id):
         try:
@@ -65,7 +67,7 @@ class FollowUserView(generics.GenericAPIView):
 
 class UnfollowUserView(generics.GenericAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     
     def post(self, request, user_id):
         try:
