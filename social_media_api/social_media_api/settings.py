@@ -13,6 +13,22 @@ import os
 from pathlib import Path
 from decouple import config
 from .settings import *
+from dotenv import load_dotenv
+
+
+
+load_dotenv()
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',  
+        'NAME': os.getenv('social_media_db'),
+        'USER': os.getenv('social_media_user'),
+        'PASSWORD': os.getenv('Dela1234'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+    }
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +43,7 @@ SECRET_KEY = 'django-insecure-_i*-si4ik$@-2$020*!ev(44q&symtq$4_23r1&6e6dsn(5*_=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['social-media-api.herokuapp.com', ]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
 
 
 # Application definition
@@ -157,3 +173,4 @@ SESSION_COOKIE_SECURE = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
+AUTH_USER_MODEL = 'accounts.CustomUser'

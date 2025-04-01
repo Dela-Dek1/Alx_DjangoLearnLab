@@ -8,10 +8,21 @@ from notifications.models import Notification
 from django.views.generic import ListView
 from django.http import JsonResponse
 from rest_framework.generics import get_object_or_404
+from django.shortcuts import render
+from django.http import HttpResponse
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
 
 # Create your views here.
 def home(request):
     return JsonResponse({"message": "Welcome to the Social Media API!"})
+
+
+class FeedView(APIView):
+    def get(self, request):
+        return Response({'message': 'This is the feed.'})
+
 
 class IsAuthorOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
