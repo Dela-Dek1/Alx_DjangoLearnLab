@@ -1,40 +1,59 @@
+# accounts/serializers.py
+
 from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from django.contrib.auth.password_validation import validate_password
-from rest_framework.authtoken.models import Token
+from django.contrib.auth import get_user_model, authenticate
+from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
 
 class UserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField()  # Explicitly defining it here
+    """Serializer for the user object"""
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'bio', 'profile_picture']
-        read_only_fields = ['id']
-
-class UserRegisterSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(required=True)  # Explicitly defining here
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password_confirm = serializers.CharField(write_only=True, required=True)
-    
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password', 'password_confirm', 'bio', 'profile_picture']
-    
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
-        return attrs
+        fields = ('id', 'username', 'email', 'password', 'bio', 'profile_picture', 'follower_count', 'following_count')
+        extra_kwargs = {
+            'password': {'write_only': True, 'min_length': 5},
+            'id': {'read_only': True}
+        }
     
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
-        user = get_user_model().objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password'],
-            bio=validated_data.get('bio', ''),
-            profile_picture=validated_data.get('profile_picture', None)
-        )
-        Token.objects.create(user=user)
+        """Create a new user with encrypted password and return it"""
+        return User.objects.create_user(**validated_data)
+    
+    def update(self, instance, validated_data):
+        """Update a user, setting the password correctly and return it"""
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+        
+        if password:
+            user.set_password(password)
+            user.save()
+            
         return user
+
+class AuthTokenSerializer(serializers.Serializer):
+    """Serializer for the user authentication object"""
+    username = serializers.CharField()
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        trim_whitespace=False
+    )
+    
+    def validate(self, attrs):
+        """Validate and authenticate the user"""
+        username = attrs.get('username')
+        password = attrs.get('password')
+        
+        user = authenticate(
+            request=self.context.get('request'),
+            username=username,
+            password=password
+        )
+        
+        if not user:
+            msg = _('Unable to authenticate with provided credentials')
+            raise serializers.ValidationError(msg, code='authentication')
+        
+        attrs['user'] = user
+        return attrs
