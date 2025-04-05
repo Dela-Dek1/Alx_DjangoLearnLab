@@ -1,19 +1,20 @@
-from django.urls import path
-from .views import PostViewSet, FeedView, CommentViewSet, home
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+from .views import PostViewSet, CommentViewSet
+
+router = DefaultRouter()
+router.register('', PostViewSet)
+router.register('comments', CommentViewSet)
 
 urlpatterns = [
-    path('', home, name='home'),
-    path('feed/', FeedView.as_view(), name='feed'),
-    
-    # Post Endpoints
-    path('posts/', PostViewSet.as_view({'get': 'list', 'post': 'create'}), name='post-list'),
-    path('posts/<int:pk>/', PostViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='post-detail'),
-    
-    # Like & Unlike Endpoints
-    path('posts/<int:pk>/like/', PostViewSet.as_view({'post': 'like'}), name='post-like'),
-    path('posts/<int:pk>/unlike/', PostViewSet.as_view({'post': 'unlike'}), name='post-unlike'),
-
-    # Comment Endpoints
-    path('posts/<int:post_pk>/comments/', CommentViewSet.as_view({'get': 'list', 'post': 'create'}), name='comment-list'),
-    path('posts/<int:post_pk>/comments/<int:pk>/', CommentViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='comment-detail'),
+    path('admin/', admin.site.urls),
+    path('', include(router.urls)),
+    path('api/accounts/', include('accounts.urls')),
+    path('api/posts/', include('posts.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
