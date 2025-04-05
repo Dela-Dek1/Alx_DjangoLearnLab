@@ -11,7 +11,7 @@ from .serializers import UserSerializer, AuthTokenSerializer
 User = get_user_model()
 
 class CreateUserView(generics.CreateAPIView):
-    """Create a new user in the system"""
+   
     serializer_class = UserSerializer
     permission_classes = [permissions.AllowAny]
     
@@ -26,7 +26,7 @@ class CreateUserView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 class CreateTokenView(ObtainAuthToken):
-    """Create a new auth token for the user"""
+    
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
     
@@ -43,10 +43,9 @@ class CreateTokenView(ObtainAuthToken):
         })
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
-    """Manage the authenticated user"""
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_object(self):
-        """Retrieve and return authenticated user"""
+        
         return self.request.user
