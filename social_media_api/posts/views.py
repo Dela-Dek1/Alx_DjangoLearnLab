@@ -1,12 +1,14 @@
-from rest_framework import viewsets, permissions, filters, status
+from rest_framework import viewsets, permissions, filters, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Count, Q
-from django.contrib.contenttypes.models import ContentType  
-from .models import Post, Comment, Like, Notification  
-from .serializers import PostSerializer, PostDetailSerializer, CommentSerializer
+from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import get_object_or_404
+from .models import Post, Comment, Like
+from .serializers import PostSerializer, PostDetailSerializer, CommentSerializer, LikeSerializer
 from .permissions import IsAuthorOrReadOnly
+from notifications.models import Notification
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -19,84 +21,29 @@ class PostViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
     
     def get_queryset(self):
+        
         queryset = Post.objects.all().annotate(comment_count=Count('comments'))
         return queryset
         
     def get_serializer_class(self):
+        
         if self.action == 'retrieve':
             return PostDetailSerializer
         return PostSerializer
     
     def perform_create(self, serializer):
+       
         serializer.save(author=self.request.user)
     
     @action(detail=False, methods=['get'])
     def feed(self, request):
+        
         user = request.user
         following_users = user.following.all()
+        
         queryset = Post.objects.filter(author__in=following_users).order_by('-created_at')
         
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-            
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class FeedView(APIView):
-    
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get(self, request):
-        user = request.user
-        following_users = user.following.all()
-        posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
-        
-        serializer = PostSerializer(posts, many=True, context={'request': request})
-        return Response(serializer.data)
-
-
-class CommentViewSet(viewsets.ModelViewSet):
-    
-    queryset = Comment.objects.all()
-    serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
-    
-    def perform_create(self, serializer):
-        comment = serializer.save(author=self.request.user)
-        post = comment.post
-        user = self.request.user
-        
-        # Create notification for post author if not the same user
-        if post.author != user:
-            content_type = ContentType.objects.get_for_model(comment)
-            Notification.objects.create(
-                recipient=post.author,
-                actor=user,
-                verb='commented',
-                description=f"{user.username} commented on your post.",
-                target_content_type=content_type,
-                target_object_id=comment.id
-            )
-    
-    def get_queryset(self):
-        queryset = Comment.objects.all()
-        post_id = self.request.query_params.get('post', None)
-        
-        if post_id is not None:
-            queryset = queryset.filter(post__id=post_id)
-            
-        return queryset
-    
-
-    @action(detail=False, methods=['get'])
-    def feed(self, request):
-        user = request.user
-        following_users = user.following.all()
-        queryset = Post.objects.filter(author__in=following_users).order_by('-created_at')
-        
+        # Apply pagination
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -139,6 +86,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         
     @action(detail=True, methods=['post'])
     def unlike(self, request, pk=None):
+        
         post = self.get_object()
         user = request.user
         
@@ -156,3 +104,95 @@ class CommentViewSet(viewsets.ModelViewSet):
             {"detail": "Post unliked successfully."},
             status=status.HTTP_200_OK
         )
+
+
+class FeedView(APIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request):
+        
+        user = request.user
+        following_users = user.following.all()
+        
+        posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
+        
+        serializer = PostSerializer(posts, many=True, context={'request': request})
+        return Response(serializer.data)
+
+
+class LikeView(APIView):
+   
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, pk):
+        post = generics.get_object_or_404(Post, pk=pk)
+        Like.objects.get_or_create(user=request.user, post=post)
+        
+        # Create notification for post author if not the same user
+        if post.author != request.user:
+            content_type = ContentType.objects.get_for_model(post)
+            Notification.objects.create(
+                recipient=post.author,
+                actor=request.user,
+                verb='liked',
+                description=f"{request.user.username} liked your post.",
+                target_content_type=content_type,
+                target_object_id=post.id
+            )
+        
+        return Response({"status": "liked"}, status=status.HTTP_201_CREATED)
+
+
+class UnlikeView(APIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, pk):
+        post = generics.get_object_or_404(Post, pk=pk)
+        like = Like.objects.filter(user=request.user, post=post)
+        
+        if like.exists():
+            like.delete()
+            return Response({"status": "unliked"}, status=status.HTTP_200_OK)
+        else:
+            return Response(
+                {"detail": "You have not liked this post."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+   
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
+    
+    def perform_create(self, serializer):
+        
+        comment = serializer.save(author=self.request.user)
+        post = comment.post
+        user = self.request.user
+        
+        # Create notification for post author if not the same user
+        if post.author != user:
+            content_type = ContentType.objects.get_for_model(comment)
+            Notification.objects.create(
+                recipient=post.author,
+                actor=user,
+                verb='commented',
+                description=f"{user.username} commented on your post.",
+                target_content_type=content_type,
+                target_object_id=comment.id
+            )
+    
+    def get_queryset(self):
+        
+        queryset = Comment.objects.all()
+        post_id = self.request.query_params.get('post', None)
+        
+        if post_id is not None:
+            queryset = queryset.filter(post__id=post_id)
+            
+        return queryset
+            
