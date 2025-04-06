@@ -8,51 +8,80 @@ class UserBriefSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'profile_picture')
+        fields = ('id', 'username')
 
 
 class CommentSerializer(serializers.ModelSerializer):
     
-    user = UserBriefSerializer(read_only=True)
+    author = UserBriefSerializer(read_only=True)
+    author_id = serializers.IntegerField(write_only=True, required=False)
     
     class Meta:
         model = Comment
-        fields = ('id', 'post', 'user', 'content', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'user', 'created_at', 'updated_at')
+        fields = ('id', 'post', 'author', 'author_id', 'content', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
+        
+    def create(self, validated_data):
+        
+        author_id = validated_data.pop('author_id', None)
+        
+        # If no author_id was provided, use the request user
+        if not author_id and 'request' in self.context:
+            validated_data['author'] = self.context['request'].user
+        
+        return super().create(validated_data)
+        
+    def validate(self, data):
+        
+        author_id = data.get('author_id')
+        request = self.context.get('request')
+        
+        if author_id and request and request.user.id != author_id:
+            raise serializers.ValidationError(
+                "You can only create comments as yourself."
+            )
+        
+        return data
 
 
 class PostSerializer(serializers.ModelSerializer):
     
-    user = UserBriefSerializer(read_only=True)
-    comments = CommentSerializer(many=True, read_only=True)
-    like_count = serializers.ReadOnlyField()
-    is_liked = serializers.SerializerMethodField()
+    author = UserBriefSerializer(read_only=True)
+    author_id = serializers.IntegerField(write_only=True, required=False)
+    comment_count = serializers.IntegerField(read_only=True)
     
     class Meta:
         model = Post
-        fields = ('id', 'user', 'content', 'image', 'created_at', 'updated_at', 
-                 'comments', 'like_count', 'is_liked')
-        read_only_fields = ('id', 'user', 'created_at', 'updated_at')
-    
-    def get_is_liked(self, obj):
+        fields = ('id', 'title', 'content', 'author', 'author_id', 
+                 'created_at', 'updated_at', 'comment_count')
+        read_only_fields = ('id', 'created_at', 'updated_at')
         
+    def create(self, validated_data):
+        
+        author_id = validated_data.pop('author_id', None)
+        
+        # If no author_id was provided, use the request user
+        if not author_id and 'request' in self.context:
+            validated_data['author'] = self.context['request'].user
+            
+        return super().create(validated_data)
+        
+    def validate(self, data):
+     
+        author_id = data.get('author_id')
         request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return obj.likes.filter(id=request.user.id).exists()
-        return False
+        
+        if author_id and request and request.user.id != author_id:
+            raise serializers.ValidationError(
+                "You can only create posts as yourself."
+            )
+            
+        return data
 
 
-class PostCreateSerializer(serializers.ModelSerializer):
+class PostDetailSerializer(PostSerializer):
     
-    class Meta:
-        model = Post
-        fields = ('id', 'content', 'image')
-        read_only_fields = ('id',)
-
-
-class CommentCreateSerializer(serializers.ModelSerializer):
+    comments = CommentSerializer(many=True, read_only=True)
     
-    class Meta:
-        model = Comment
-        fields = ('id', 'post', 'content')
-        read_only_fields = ('id',)
+    class Meta(PostSerializer.Meta):
+        fields = PostSerializer.Meta.fields + ('comments',)
