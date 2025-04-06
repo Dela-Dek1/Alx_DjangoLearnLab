@@ -8,7 +8,8 @@ from .permissions import IsAuthorOrReadOnly
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.annotate(comment_count=Count('comments'))
+    
+    queryset = Post.objects.all()
     permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'content']
@@ -16,7 +17,7 @@ class PostViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
     
     def get_serializer_class(self):
-        
+       
         if self.action == 'retrieve':
             return PostDetailSerializer
         return PostSerializer
@@ -41,17 +42,16 @@ class PostViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
-  
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated, IsAuthorOrReadOnly]
     
     def perform_create(self, serializer):
-        
+       
         serializer.save(author=self.request.user)
     
     def get_queryset(self):
-       
+        
         queryset = Comment.objects.all()
         post_id = self.request.query_params.get('post', None)
         
