@@ -117,16 +117,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'social_media_api.wsgi.application'
 
-# Enable the XSS filter in the browser
 SECURE_BROWSER_XSS_FILTER = True 
 
-# Clickjacking protection
 X_FRAME_OPTIONS = "DENY"
 
-# Prevent browsers from MIME-sniffing a response away from the declared content type
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
-# Force HTTPS redirect
 SECURE_SSL_REDIRECT = True  
 
 
@@ -187,5 +183,4 @@ SESSION_COOKIE_SECURE = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'accounts.User'
 AUTH_USER_MODEL = 'accounts.CustomUser'

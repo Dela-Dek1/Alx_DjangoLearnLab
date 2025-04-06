@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
 # Register your models here.
-User = get_user_model()
+CustomUser = get_user_model()
 
 class UserAdmin(BaseUserAdmin):
     fieldsets = (
@@ -17,4 +17,4 @@ class UserAdmin(BaseUserAdmin):
     list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
     search_fields = ('username', 'first_name', 'last_name', 'email')
 
-admin.site.register(User, UserAdmin)
+admin.site.register(CustomUser, UserAdmin)
