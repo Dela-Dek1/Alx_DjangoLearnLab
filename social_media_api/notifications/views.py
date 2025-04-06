@@ -1,34 +1,43 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions, status
+from rest_framework import generics, viewsets, permissions, filters, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from .models import Notification
 from .serializers import NotificationSerializer
 
-# Create your views here.
-class NotificationListView(generics.ListAPIView):
+
+class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
+   
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [filters.OrderingFilter]
+    ordering = ['-timestamp']
     
     def get_queryset(self):
-        return Notification.objects.filter(recipient=self.request.user).order_by('-timestamp')
-
-class MarkNotificationReadView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+        
+        return Notification.objects.filter(recipient=self.request.user)
     
-    def post(self, request, notification_id):
-        try:
-            notification = Notification.objects.get(id=notification_id, recipient=request.user)
-            notification.is_read = True
-            notification.save()
-            return Response({'status': 'notification marked as read'}, status=status.HTTP_200_OK)
-        except Notification.DoesNotExist:
-            return Response({'error': 'notification not found'}, status=status.HTTP_404_NOT_FOUND)
-
-class MarkAllNotificationsReadView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    @action(detail=False, methods=['get'])
+    def unread(self, request):
+       
+        notifications = self.get_queryset().filter(unread=True)
+        page = self.paginate_queryset(notifications)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+            
+        serializer = self.get_serializer(notifications, many=True)
+        return Response(serializer.data)
     
-    def post(self, request):
-        notifications = Notification.objects.filter(recipient=request.user, is_read=False)
-        notifications.update(is_read=True)
-        return Response({'status': f'{notifications.count()} notifications marked as read'}, status=status.HTTP_200_OK)
+    @action(detail=False, methods=['post'])
+    def mark_all_read(self, request):
+       
+        self.get_queryset().update(unread=False)
+        return Response({"detail": "All notifications marked as read."}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        
+        notification = self.get_object()
+        notification.unread = False
+        notification.save()
+        return Response({"detail": "Notification marked as read."}, status=status.HTTP_200_OK)

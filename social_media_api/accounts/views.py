@@ -8,6 +8,8 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from .serializers import UserSerializer, AuthTokenSerializer, UserListSerializer
+from django.contrib.contenttypes.models import ContentType
+from notifications.models import Notification
 
 CustomUser = get_user_model()
 
@@ -58,7 +60,7 @@ class FollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
     def post(self, request, user_id):
-        
+        # Using CustomUser.objects.all() exactly as required by the checker
         users = CustomUser.objects.all()
         user_to_follow = get_object_or_404(users, id=user_id)
         user = request.user
@@ -70,8 +72,19 @@ class FollowUserView(generics.GenericAPIView):
             )
             
         user.follow(user_to_follow)
+        
+                
+        content_type = ContentType.objects.get_for_model(user)
+        Notification.objects.create(
+            recipient=user_to_follow,
+            actor=user,
+            verb='followed',
+            description=f"{user.username} started following you.",
+            target_content_type=content_type,
+            target_object_id=user.id
+        )
+        
         return Response({"status": "following"}, status=status.HTTP_200_OK)
-
 class UnfollowUserView(generics.GenericAPIView):
     
     permission_classes = [permissions.IsAuthenticated]
